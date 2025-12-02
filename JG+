@@ -1,0 +1,65 @@
+import time
+
+def inicializar_cidade():
+    """Define o estado inicial da cidade."""
+    cidade = {
+        "nome": "Ecolândia Alpha",
+        "populacao": 100,
+        "tokens_eco": 50.0, # Saldo inicial do token virtual
+        "recursos": {
+            "energia_solar": 10,  # Unidades/hora
+            "agua_tratada": 25,   # Unidades/hora
+            "lixo_reciclado": 5    # Unidades/hora
+        }
+    }
+    return cidade
+
+def simular_producao(cidade):
+    """Calcula a produção de tokens baseada nos recursos."""
+    
+    # Simula a "mineração" de tokens $ECO:
+    # A produção de $ECO é proporcional à eficiência dos recursos.
+    producao_eco = (cidade["recursos"]["energia_solar"] * 0.5) + \
+                   (cidade["recursos"]["lixo_reciclado"] * 0.8)
+                   
+    cidade["tokens_eco"] += producao_eco
+    
+    # Atualiza o saldo do recurso reciclado (é consumido na produção)
+    cidade["recursos"]["lixo_reciclado"] = 0
+    
+    print(f"\n✅ Produção do Ciclo Concluída!")
+    print(f"   -> Tokens $ECO gerados: +{producao_eco:.2f}")
+    
+    return cidade
+
+def exibir_status(cidade):
+    """Mostra o status atual da cidade."""
+    print("\n" + "="*40)
+    print(f"🏙️ STATUS DA CIDADE: {cidade['nome']}")
+    print("="*40)
+    print(f"💰 Saldo de $ECO (Virtual): {cidade['tokens_eco']:.2f}")
+    print("---")
+    print("📊 Recursos Atuais (Produção/Hora):")
+    for recurso, valor in cidade["recursos"].items():
+        print(f"   - {recurso.replace('_', ' ').title()}: {valor}")
+    print("="*40)
+
+# --- INÍCIO DA SIMULAÇÃO ---
+
+minha_cidade = inicializar_cidade()
+
+print("Iniciando simulação de Ecolândia...")
+exibir_status(minha_cidade)
+
+# 1º Ciclo de Simulação
+print("\n[ SIMULAÇÃO: 1º CICLO (Passou 1 Hora Virtual) ]")
+minha_cidade["recursos"]["lixo_reciclado"] = 10 # Novo lixo coletado
+minha_cidade = simular_producao(minha_cidade)
+exibir_status(minha_cidade)
+
+# 2º Ciclo de Simulação (com mais desenvolvimento)
+print("\n[ SIMULAÇÃO: 2º CICLO (Passou 1 Hora Virtual + Construção de Usina Solar) ]")
+minha_cidade["recursos"]["energia_solar"] += 5 # O jogador construiu uma nova usina
+minha_cidade["recursos"]["lixo_reciclado"] = 8
+minha_cidade = simular_producao(minha_cidade)
+exibir_status(minha_cidade)
