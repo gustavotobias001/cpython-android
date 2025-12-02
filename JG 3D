@@ -1,0 +1,75 @@
+from direct.showbase.ShowBase import ShowBase
+from panda3d.core import AmbientLight, DirectionalLight
+from panda3d.core import LVector3, LVector4
+from panda3d.core import WindowProperties, loadPrcFileData
+from direct.task import Task
+import sys
+
+# Configurações iniciais para o Panda3D
+loadPrcFileData("", "window-title Jogo de Tiro 3D Básico")
+loadPrcFileData("", "win-size 1280 720")
+loadPrcFileData("", "fullscreen 0")
+
+class ShooterGame(ShowBase):
+
+    def __init__(self):
+        ShowBase.__init__(self)
+
+        # 1. Configurar a Janela e o Mouse
+        props = WindowProperties()
+        props.setCursorHidden(True)  # Esconde o cursor
+        props.setMouseMode(WindowProperties.M_relative) # Modo relativo para controle FPS
+        self.win.requestProperties(props)
+
+        # 2. Configurar a Iluminação
+        self.setup_lighting()
+
+        # 3. Carregar o Ambiente (Chão)
+        self.environ = self.loader.loadModel("models/world") # Tente carregar um modelo básico de exemplo
+        if self.environ is None:
+             # Se o modelo "world" não estiver disponível, use um plano simples
+            self.environ = self.loader.loadModel("models/plane")
+            self.environ.setScale(100, 100, 1)
+            self.environ.setTexture(self.loader.loadTexture("models/grass.jpg"), 1) # Textura de grama
+            print("AVISO: Usando um plano simples como ambiente.")
+
+        self.environ.reparentTo(self.render)
+
+        # 4. Configurar a Posição Inicial da Câmera (Perspectiva de 1ª Pessoa)
+        self.camera.setPos(0, -5, 1.8) # Posição ligeiramente acima do chão
+        self.camera.setHpr(0, 0, 0)
+
+        # 5. Variáveis de Controle de Movimento
+        self.keyMap = {"forward": 0, "backward": 0, "left": 0, "right": 0, "mouse_x": 0, "mouse_y": 0}
+        self.speed = 10.0
+        self.mouse_sensitivity = 0.15
+
+        # 6. Mapeamento de Teclas
+        self.accept("w", self.setKey, ["forward", 1])
+        self.accept("w-up", self.setKey, ["forward", 0])
+        self.accept("s", self.setKey, ["backward", 1])
+        self.accept("s-up", self.setKey, ["backward", 0])
+        self.accept("a", self.setKey, ["left", 1])
+        self.accept("a-up", self.setKey, ["left", 0])
+        self.accept("d", self.setKey, ["right", 1])
+        self.accept("d-up", self.setKey, ["right", 0])
+        self.accept("escape", sys.exit) # Sair
+
+        # 7. Adicionar a Função de Atualização
+        self.taskMgr.add(self.update_movement, "update_movement_task")
+        self.taskMgr.add(self.update_mouse_look, "update_mouse_look_task")
+        
+        # Opcional: Adicionar um cubo simples para ter um alvo
+        self.target = self.loader.loadModel("models/box")
+        if self.target is None:
+            self.target = self.loader.loadModel("models/cube")
+        self.target.reparentTo(self.render)
+        self.target.setPos(5, 10, 1)
+        self.target.setColor(LVector4(1, 0, 0, 1))
+        self.target.setScale(1)
+
+
+    def setup_lighting(self):
+        # Luz Ambiente (luz suave geral)
+        ambientLight = AmbientLight("ambientLight")
+        ambientLight.setColor(LVector4(0.4,
